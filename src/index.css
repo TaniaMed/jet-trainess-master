@@ -1,0 +1,129 @@
+html {
+  box-sizing: border-box;
+}
+
+*,
+*::after,
+*::before {
+  box-sizing: inherit;
+}
+
+@font-face{
+	font-family: 'opensans';
+	src: url('fonts/OpenSans-Regular.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face{
+	font-family: 'opensans';
+	src: url('fonts/OpenSans-ExtraBold.ttf') format('truetype');
+	font-weight: bold;
+	font-style: normal;
+}
+
+.main {
+	width: 90%;
+	font-family: opensans;
+	font-size: 0.8em;
+	margin: 0px auto;
+}
+
+.filter {
+	float: right;
+}
+
+.filter button {
+	padding: 1px 5px;
+}
+
+.table table {
+	border-spacing: 0;
+	min-width: 100%;	
+}
+
+th {
+   	position: relative;
+	text-align: left;
+    background-color: #fff; 
+    color: #000;    
+}
+
+td {
+    padding: 5px; 
+    color: #666;
+}
+
+th {
+   	padding: 5px 15px;
+} 
+
+td {
+    border-bottom: 1px solid darkgray; 
+}
+
+tr:last-child td, th {
+   	border-bottom: 2px solid black;
+}
+
+tr:nth-of-type(odd) { 
+    background-color: #fff;
+} 
+
+tr:nth-of-type(even) {
+    background-color:  #F7F7F7;
+}
+
+td:nth-child(4), td:nth-child(6){ 
+    text-align:  right;
+}
+.fa-dollar-sign {
+	font-size: 0.9em;
+}
+
+.fa-sort, .fa-caret-down {
+	font-size: 0.8em;
+	position: absolute !important;
+	right: 3px;
+	top: 30%;
+	color: #666;
+}
+
+.fa-caret-down {
+	color: blue;
+}
+
+tr:nth-of-type(even) .active {
+    background: #E6E6E6;
+}
+
+tr:nth-of-type(odd) .active { 
+    background: #EEEEEE;
+}
+
+.pagination {
+	float: right;
+	margin: 30px 10px;
+}
+
+.pagination button {
+	padding: 5px 10px;
+	margin: 0px 3px;
+}
+
+.pagination button.noactive {
+	background: none;
+	border: none;
+}
+
+.tip {
+	width: 100%;
+	text-align: center;
+	margin: 20px auto;
+}
+
+.table th, 
+.pagination button, 
+.table .filter button {
+	cursor: pointer;
+}
