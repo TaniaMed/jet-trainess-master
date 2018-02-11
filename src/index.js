@@ -220,7 +220,7 @@ class Table {
 		this.drawFilter(main);
 		this.drawTable(main);
 		this.drawPagination(main.appendChild(this.el('div', { 'class' : 'pagination'})));
-		listener();
+		this.listener(main);
 	}
 	changeClass(oldC, newC, tag) {
 		if (tag) {
@@ -311,35 +311,35 @@ class Table {
 			this.addTip(main);
 		}		
 	}	
+	redrawClickHeader(e) {		
+		let elem = e.target.tagName === "TH" ? this.sortTable(e.target, this.table) : this.sortTable(e.target.closest('th'), this.table);
+		this.leaf(this.table);
+		this.redraw(this.table);
+		this.changeSortedColStyles(this.table, elem);
+	}
+	redrawClickFilterBtn(e) {
+		this.search(this.table, this.pagination, this.main);
+		this.redraw(this.table);
+	}
+	redrawClickPagination(e) {
+		this.redraw(this.table, this.leaf(this.table, e.target));
+		let arrow = this.table.querySelector('.fa-caret-down');	
+		if (arrow) {
+			this.changeSortedColStyles(this.table, arrow.closest('th'));
+		} 
+	}
+	listener(main) {
+		this.main = main;
+		this.table = main.querySelector('.table table');
+		this.pagination = main.querySelector('.pagination');
+		const tableHeader = this.table.querySelector('tr:first-child');
+		const filterBtn = main.querySelector('.filter button');
+
+		tableHeader.addEventListener('click', this.redrawClickHeader.bind(this));
+		filterBtn.addEventListener('click', this.redrawClickFilterBtn.bind(this));
+		this.pagination.addEventListener('click', this.redrawClickPagination.bind(this));
+	}
 }
 
 const inf = new Table(data);
 inf.print();
-
-function listener() {
-	const main = document.querySelector('.main');
-	const table = main.querySelector('.table table');
-	const tableHeader = table.querySelector('tr:first-child');
-	const filterBtn = main.querySelector('.filter button');
-	const pagination = main.querySelector('.pagination');
-				
-	tableHeader.addEventListener('click', function(e) {
-		inf.leaf(table);
-		let elem = e.target.tagName === "TH" ? inf.sortTable(e.target, table) : inf.sortTable(e.target.closest('th'), table);
-		inf.redraw(table);
-		inf.changeSortedColStyles(table, elem);
-	});
-		
-	filterBtn.addEventListener('click', function(e) {
-		inf.search(table, pagination, main);
-		inf.redraw(table);
-	});	
-		
-	pagination.addEventListener('click', function(e) {
-		inf.redraw(table, inf.leaf(table, e.target));
-		let arrow = table.querySelector('.fa-caret-down');	
-		if (arrow) {
-			inf.changeSortedColStyles(table, arrow.closest('th'));
-		} 
-	});	
-}
