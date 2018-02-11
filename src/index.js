@@ -127,7 +127,6 @@ let data = [{
 		'Start Date': '2012/09/26',
 		'Salary': '217.5'
 	}
-
 ]
 
 class Table {
@@ -136,255 +135,211 @@ class Table {
 		this.numRows = 10;
 		this.num = Math.ceil(this.data.length / this.numRows);
 	}
+	el(tagName, attributes = {}, children = []) {
+  		const element =  document.createElement(tagName);
+  		if (typeof attributes === 'object') {
+    		Object.keys(attributes).forEach(i => element.setAttribute(i, attributes[i]));  
+  		}
+  		if (typeof children === 'string') { 
+     		 element.textContent = children; 
+    	} 
+  		else if (children instanceof Array) {     
+    		children.forEach(child => {
+    			if (typeof child === 'string') { 
+		     		element.textContent = child; 
+		    	} else {
+    				element.appendChild(child); 
+    			}
+    		});
+  		}
+  		return element;
+	}
 	drawTableHeader(table) {
-		let tr = document.createElement('tr');
-		table.appendChild(tr);
-
-		let col = 1;
-		for (let item in this.data[0]) {
-			let th = document.createElement('th');
-			th.setAttribute('data-col', col++);
-			let i = document.createElement('i');
-			tr.appendChild(th);
-			th.textContent = item;
-			th.appendChild(i);
-			i.className = 'fas fa-sort';
+		let items = Object.keys(this.data[0]).map((property, id) => {
+			return this.el('th', { 'data-col' : id }, [ 
+				property, this.el('i', { 'class' : 'fas fa-sort' }) 
+			]);
+		});
+		table.appendChild(this.el('tr', {}, items));
+	}
+	drawRow(obj, place) {
+		return Object.keys(obj).map((property, id) => {
+			return this.el('td', { 'data-col': id }, 
+				property === 'Salary' ? `$ ${ Number(obj[property]).toFixed(3) }` : obj[property]
+			);
+		});
+	}
+	drawFixedNumRows(table, start = 0, finish = 9) {
+		for (let item = start; item <= finish; item++) { 
+			if (this.data[item]) {
+				table.appendChild(this.el('tr', { 'key' : item }, this.drawRow(this.data[item])));
+			}
 		}
 	}
-	drawRow(table, start = 0, finish = 9) {
-		for (let item = start; item <= finish; item++) { //this.data
-			let tr_body = document.createElement('tr');
-			table.appendChild(tr_body);
-			tr_body.setAttribute('key', item);
-			let col = 1;
-			for (let property in this.data[item]) {
-				let td = tr_body.appendChild(document.createElement('td'));
-				td.setAttribute('data-col', col++);
-				td.textContent = property === 'Salary' ? `$ ${(+(this.data[item][property])).toFixed(3)}` : this.data[item][property];
-			}
+	removeAllRows(table) {
+		if (table.querySelectorAll('tr').length > 1) {
+			Array.from(table.querySelectorAll('tr:nth-child(n+2)')).forEach((item) => {
+				table.removeChild(item);
+			});
 		}
 	}
 	drawTable(main) {
-		let div = document.createElement('div');
-		div.className = 'table';
-		main.appendChild(div);
-
-		let table = document.createElement('table');
-		div.appendChild(table);
-
+		main.appendChild(this.el('div', { 'class' : 'table' }, [ this.el('table') ]));
+		const table = main.querySelector('table');
 		this.drawTableHeader(table);
-		this.drawRow(table);
+		this.drawFixedNumRows(table);
 	}
-	drawPagination(main, num, focus) {
-		let pagination = document.createElement('div');
-		pagination.className = 'pagination';
-		main.appendChild(pagination);
-
-		let prev = document.createElement('button');
-		prev.textContent = 'Previous';
-		prev.classList.add('noactive');
-		prev.classList.add('prev');
-		pagination.appendChild(prev);
-
-		for (let i = 1; i <= num; i++) {
-			let button = document.createElement('button');
-			button.textContent = i;
-			button.setAttribute('key', i);
-			if (i !== focus) {
-				button.classList.add('noactive');
-			} else {
-				button.classList.add('active');
-			}
-			pagination.appendChild(button);
+	removePagination() {
+		const paginationBtn = document.querySelectorAll('.pagination button');
+		if (paginationBtn) {
+			paginationBtn.forEach(btn => {
+				btn.remove();
+			});
 		}
-
-		let next = document.createElement('button');
-		next.textContent = 'Next';
-		next.classList.add('next');
-		next.classList.add('noactive');
-		pagination.appendChild(next);
+	}
+	drawPagination(tag, num = this.num, focus = 1) {
+		let allButton = [];
+		for (let i = 1; i <= num; i++) {
+			allButton.push(this.el('button', {'key' : i, 'class' : i === focus ? 'active' : 'noactive' }, String(i)));
+		}
+		allButton.push(this.el('button', { 'class' : 'noactive next'}, 'Next'));
+		allButton.unshift(this.el('button', { 'class' : 'noactive prev'}, 'Previous'));
+		allButton.forEach(btn => {
+			tag.appendChild(btn);
+		})
+	}
+	drawFilter(main) {
+		main.appendChild(this.el('div', { 'class' : 'filter' }, [
+				this.el('lable', {}, 'Search: '),
+				this.el('input'),
+				this.el('button', {}, 'Search')
+			]));
 	}
 	print() {
-		let main = document.createElement('div');
-		main.className = 'main';
-		document.body.appendChild(main);
-
-		let filter = document.createElement('div');
-		let lableFilter = document.createElement('lable');
-		let inputFilter = document.createElement('input');
-		let buttonFilter = document.createElement('button');
-
-		filter.className = 'filter';
-		lableFilter.textContent = 'Search: ';
-		buttonFilter.textContent = 'Search';
-
-		main.appendChild(filter);
-		filter.appendChild(lableFilter);
-		filter.appendChild(inputFilter);
-		filter.appendChild(buttonFilter);
-
+		const main = document.body.appendChild(this.el('div', { 'class' : 'main'}));
+		this.drawFilter(main);
 		this.drawTable(main);
-		this.drawPagination(main, this.num, 1)
+		this.drawPagination(main.appendChild(this.el('div', { 'class' : 'pagination'})));
+		listener();
 	}
+	changeClass(oldC, newC, tag) {
+		if (tag) {
+			tag.classList.remove(oldC);
+			tag.classList.add(newC);
+		}
+	}
+	changeSortedColStyles(table, elem) {		
+		let col = elem.dataset.col;
+		const td = table.querySelectorAll(`td[data-col = "${col}"]`);
+		const i = elem.querySelector('.svg-inline--fa');
+		const iOld = table.querySelector('.fa-caret-down');	
+
+		this.changeClass('fa-caret-down', 'fa-sort', iOld);
+		this.changeClass('fa-sort', 'fa-caret-down', i);
+		
+		Array.from(td).forEach((item) => {
+			item.classList.add('active');
+		});
+	}
+	sortTable(elem, table) {
+		let text = elem.textContent;
+		if (elem.querySelector('.fa-caret-down')) {
+			this.data.reverse();
+		} else {
+			this.data = this.data.sort(function (a, b) {
+				return  text === 'Salary' ? (
+					Number(a[text]) < Number(b[text]) ? -1 : Number(a[text]) > Number(b[text]) ? 1 : 0
+				) : (	
+					a[text] < b[text] ? -1 : a[text] > b[text] ? 1 : 0
+				)		
+			});
+		}
+		return elem;
+	}
+	redraw(table, key = 1) {		
+		this.removeAllRows(table);		
+		this.drawFixedNumRows(table, (key - 1) * 10, key * 10 - 1);	
+	}
+	changeBtnPage(elem, curr) {
+		this.changeClass('noactive', 'active', elem);
+		this.changeClass('active', 'noactive', curr);
+		return elem.getAttribute('key');
+	}
+	leaf(table, elem = document.querySelector('.pagination button[key = "1"]')) { 
+		let curr = document.querySelector('.pagination button.active');
+		if (curr !== elem) {			
+			if (elem.getAttribute('key')) {
+				return this.changeBtnPage(elem, curr);
+			} else if (elem.classList.contains('prev') && elem.nextElementSibling !== curr) {
+				let prevS = curr.previousElementSibling;
+				return this.changeBtnPage(prevS, curr);
+			} else if (elem.classList.contains('next') && elem.previousElementSibling !== curr) {
+				let nextS = curr.nextElementSibling;
+				return  this.changeBtnPage(nextS, curr);			
+			}
+		} 
+	}
+	addTip(main) {
+		main.appendChild(this.el('div', { 'class' : 'tip' }, 'По данному запросу ничего не найдено'));
+	}
+	removeTip(main) {
+		const tip = main.querySelector('.tip');
+		if (tip) {
+			tip.remove();
+		}
+	}
+	search(table, pagination, main) {
+		const input = document.querySelector('.filter input');
+		let rows = [];
+		let inputText = input.value;
+		this.data = data;
+		if (inputText) {
+			this.data.forEach(item => {
+				if (Object.values(item).some(prop => prop.toLowerCase().includes(inputText.toLowerCase()))) {
+					rows.push(item);
+				}
+			});
+			this.data = rows;
+		}
+		this.changeClass('fa-caret-down', 'fa-sort', document.querySelector('.fa-caret-down'));
+		this.removePagination();
+		this.removeTip(main);
+		if (this.data.length) {
+			this.num = Math.ceil(this.data.length / this.numRows);
+			this.drawPagination(pagination);
+		} else {
+			this.addTip(main);
+		}		
+	}	
 }
 
 const inf = new Table(data);
 inf.print();
 
-function removeRows(table) {
-	Array.from(document.querySelectorAll('tr:nth-child(n+2)')).forEach((item) => {
-		table.removeChild(item);
-	})
-}
-
-function sort(e) {
-	let elem = e.target.tagName !== 'TH' ? e.target.closest('th') : e.target;
-	let text = elem.textContent;
-
-	if (elem.querySelector('.fa-caret-down')) {
-		inf.data.reverse();
-	} else {
-		inf.data = inf.data.sort(function (a, b) {
-			if (text === 'Salary') {
-				if (+a[text] > +b[text]) {
-					return 1;
-				}
-				if (+a[text] < +b[text]) {
-					return -1;
-				}
-				return 0;
-			} else {
-				if (a[text] > b[text]) {
-					return 1;
-				}
-				if (a[text] < b[text]) {
-					return -1;
-				}
-				return 0;
-			}
-		});
-	}
-	let table = document.querySelector('table');
-	let pagination = document.querySelector('.pagination');
-	removeRows(table);
-	let iOld = table.querySelector('.fa-caret-down');
-	if (iOld) {
-		iOld.classList.remove('fa-caret-down');
-		iOld.classList.add('fa-sort');
-	}
-
-	pagination.querySelector('button[key = "1"]').click();
-
-	let col = elem.dataset.col;
-	let td = table.querySelectorAll(`td[data-col = "${col}"]`);
-
-	let i = elem.querySelector('.fa-sort');
-	i.classList.remove('fa-sort');
-	i.classList.add('fa-caret-down');
-	Array.from(td).forEach((item) => {
-		item.classList.add('active');
-	});
-}
-
-function removeCurr(curr, key, table) {
-	inf.drawRow(table, (key - 1) * 10, key * 10 - 1);
-	curr.classList.add('noactive');
-	curr.classList.remove('active');
-}
-
-function checkRows(table) {
-	if (table.querySelectorAll('tr').length > 1) {
-		removeRows(table);
-	}
-}
-
-function leaf(e) {
-	let curr = document.querySelector('.pagination button.active');
-	let key = e.target.getAttribute('key');
-	let table = document.querySelector('table');
-	if (curr !== e.target) {
-		if (key) {
-			checkRows(table);
-			e.target.classList.remove('noactive');
-			e.target.classList.add('active');
-			removeCurr(curr, key, table);
-		} else if (e.target.classList.contains('prev') && e.target.nextElementSibling !== curr) {
-			checkRows(table);
-			let prevS = curr.previousElementSibling;
-			prevS.classList.remove('noactive');
-			prevS.classList.add('active');
-			key = prevS.getAttribute('key');
-			removeCurr(curr, key, table);
-		} else if (e.target.classList.contains('next') && e.target.previousElementSibling !== curr) {
-			checkRows(table);
-			let nextS = curr.nextElementSibling;
-			nextS.classList.remove('noactive');
-			nextS.classList.add('active');
-			key = nextS.getAttribute('key');
-			removeCurr(curr, key, table);
-		}
-	} else {
-		if (table.querySelectorAll('tr').length <= 1) {
-			inf.drawRow(table, 0, 9);
-		}
-	}
-}
-
 function listener() {
-	document.querySelector('.table tr:first-child').addEventListener('click', sort);
-	let pagination = document.querySelector('.pagination');
-	if (pagination) {
-		pagination.addEventListener('click', leaf);
-	}
+	const main = document.querySelector('.main');
+	const table = main.querySelector('.table table');
+	const tableHeader = table.querySelector('tr:first-child');
+	const filterBtn = main.querySelector('.filter button');
+	const pagination = main.querySelector('.pagination');
+				
+	tableHeader.addEventListener('click', function(e) {
+		inf.leaf(table);
+		let elem = e.target.tagName === "TH" ? inf.sortTable(e.target, table) : inf.sortTable(e.target.closest('th'), table);
+		inf.redraw(table);
+		inf.changeSortedColStyles(table, elem);
+	});
+		
+	filterBtn.addEventListener('click', function(e) {
+		inf.search(table, pagination, main);
+		inf.redraw(table);
+	});	
+		
+	pagination.addEventListener('click', function(e) {
+		inf.redraw(table, inf.leaf(table, e.target));
+		let arrow = table.querySelector('.fa-caret-down');	
+		if (arrow) {
+			inf.changeSortedColStyles(table, arrow.closest('th'));
+		} 
+	});	
 }
-
-document.addEventListener('click', listener);
-
-function search() {
-	let rows = [];
-	let inputText = searchInput.value;
-	inf.data = data;
-	if (inputText) {
-		for (let item of inf.data) {
-			let flag = false;
-			for (let prop in item) {
-				if (item[prop].toLowerCase().includes(inputText.toLowerCase())) {
-					flag = true;
-				}
-			}
-			if (flag) {
-				rows.push(item);
-			}
-		}
-		inf.data = rows;
-	}
-
-	let table = document.querySelector('table');
-	if (table.querySelectorAll('tr').length > 1) {
-		removeRows(table);
-		document.querySelector('.pagination').remove();
-	}
-
-	if (document.querySelector('.tip')) {
-		document.querySelector('.tip').remove();
-	}
-	if (inf.data.length) {
-		inf.num = Math.ceil(inf.data.length / inf.numRows);
-		inf.drawPagination(main, inf.num, 1);
-		inf.drawRow(table, 0, 9);
-		listener();
-	} else {
-		let tip = document.createElement('div');
-		tip.textContent = 'По данному запросу ничего не найдено';
-		tip.classList.add('tip');
-		main.appendChild(tip);
-	}
-}
-
-const main = document.querySelector('.main');
-
-const filter = document.querySelector('.filter');
-const searchButton = filter.querySelector('button');
-const searchInput = filter.querySelector('input');
-
-searchButton.addEventListener('click', search);

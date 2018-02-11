@@ -124,6 +124,6 @@ tr:nth-of-type(odd) .active {
 
 .table th, 
 .pagination button, 
-.table .filter button {
+.filter button {
 	cursor: pointer;
 }
