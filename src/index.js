@@ -215,8 +215,8 @@ class Table {
 				this.el('button', {}, 'Search')
 			]));
 	}
-	print() {
-		const main = document.body.appendChild(this.el('div', { 'class' : 'main'}));
+	print(place = document.body) {
+		const main = place.appendChild(this.el('div', { 'class' : 'main'}));
 		this.drawFilter(main);
 		this.drawTable(main);
 		this.drawPagination(main.appendChild(this.el('div', { 'class' : 'pagination'})));
@@ -311,23 +311,23 @@ class Table {
 			this.addTip(main);
 		}		
 	}	
-	redrawClickHeader(e) {		
+	/*redrawClickHeader(e) {		
 		let elem = e.target.tagName === "TH" ? this.sortTable(e.target, this.table) : this.sortTable(e.target.closest('th'), this.table);
 		this.leaf(this.table);
 		this.redraw(this.table);
 		this.changeSortedColStyles(this.table, elem);
-	}
-	redrawClickFilterBtn(e) {
+	}*/
+	/*redrawClickFilterBtn(e) {
 		this.search(this.table, this.pagination, this.main);
 		this.redraw(this.table);
-	}
-	redrawClickPagination(e) {
+	}*/
+	/*redrawClickPagination(e) {
 		this.redraw(this.table, this.leaf(this.table, e.target));
 		let arrow = this.table.querySelector('.fa-caret-down');	
 		if (arrow) {
 			this.changeSortedColStyles(this.table, arrow.closest('th'));
 		} 
-	}
+	}*/
 	listener(main) {
 		this.main = main;
 		this.table = main.querySelector('.table table');
@@ -335,11 +335,28 @@ class Table {
 		const tableHeader = this.table.querySelector('tr:first-child');
 		const filterBtn = main.querySelector('.filter button');
 
-		tableHeader.addEventListener('click', this.redrawClickHeader.bind(this));
-		filterBtn.addEventListener('click', this.redrawClickFilterBtn.bind(this));
-		this.pagination.addEventListener('click', this.redrawClickPagination.bind(this));
+		tableHeader.addEventListener('click', (e) => {
+			let elem = e.target.tagName === "TH" ? this.sortTable(e.target, this.table) : this.sortTable(e.target.closest('th'), this.table);
+			this.leaf(this.table);
+			this.redraw(this.table);
+			this.changeSortedColStyles(this.table, elem);
+		});//this.redrawClickHeader.bind(this));
+
+		filterBtn.addEventListener('click', (e) => {
+			this.search(this.table, this.pagination, this.main);
+			this.redraw(this.table);
+		});//this.redrawClickFilterBtn.bind(this));
+
+		this.pagination.addEventListener('click', (e) => {
+			this.redraw(this.table, this.leaf(this.table, e.target));
+			let arrow = this.table.querySelector('.fa-caret-down');	
+			if (arrow) {
+				this.changeSortedColStyles(this.table, arrow.closest('th'));
+			} 
+		});//this.redrawClickPagination.bind(this));
 	}
 }
 
+const place = document.querySelector('.place');
 const inf = new Table(data);
-inf.print();
+inf.print(place);
